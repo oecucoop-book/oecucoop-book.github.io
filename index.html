@@ -2,8 +2,11 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="referrer" content="no-referrer">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="取寄せ本状況">
   <title>取寄せ本 状況確認 | 大阪電気通信大生協</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -307,7 +310,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
 
     .notify-card h3 {
@@ -321,9 +324,64 @@
     }
 
     .notify-card p {
-      margin: 0 0 6px;
+      margin: 0;
       font-size: 12px;
       color: var(--md-sys-color-on-surface-variant);
+    }
+
+    .ios-pwa-guide {
+      width: 100%;
+      background-color: var(--md-sys-color-surface-container-lowest);
+      border: 1px solid var(--md-sys-color-outline-variant);
+      border-radius: var(--md-shape-corner-medium);
+      padding: 14px;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .ios-pwa-guide-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--md-sys-color-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ios-step-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .ios-step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--md-sys-color-on-surface);
+    }
+
+    .ios-step-badge {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background-color: var(--md-sys-color-primary-container);
+      color: var(--md-sys-color-on-primary-container);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .inline-icon {
+      font-size: 16px;
+      vertical-align: middle;
+      color: var(--md-sys-color-primary);
     }
 
     .md-btn {
@@ -458,7 +516,29 @@
 
   <div class="md-card notify-card" id="notificationCard" style="display: none;">
     <h3><span class="material-symbols-rounded">notifications</span>入荷をプッシュ通知で受け取る</h3>
+    
+    <div id="iosGuideBox" class="ios-pwa-guide" style="display: none;">
+      <div class="ios-pwa-guide-title">
+        <span class="material-symbols-rounded">install_mobile</span>iPhoneで通知を受け取る手順
+      </div>
+      <div class="ios-step-list">
+        <div class="ios-step">
+          <div class="ios-step-badge">1</div>
+          <div>Safari下部の共有ボタン <span class="material-symbols-rounded inline-icon">ios_share</span> をタップ</div>
+        </div>
+        <div class="ios-step">
+          <div class="ios-step-badge">2</div>
+          <div>メニューから「<strong>ホーム画面に追加</strong>」を選択</div>
+        </div>
+        <div class="ios-step">
+          <div class="ios-step-badge">3</div>
+          <div>ホーム画面に追加されたアイコンから開き直して通知を許可</div>
+        </div>
+      </div>
+    </div>
+
     <p id="notifyDesc">取寄せ中の本が入荷した際、この端末に通知でお知らせします。</p>
+
     <button id="btnSubscribePush" class="md-btn md-btn-primary">
       <span class="material-symbols-rounded">notifications_active</span>通知を受け取る
     </button>
@@ -660,6 +740,17 @@
   function setupNotificationButton() {
     const btn = document.getElementById('btnSubscribePush');
     const desc = document.getElementById('notifyDesc');
+    const iosBox = document.getElementById('iosGuideBox');
+
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+
+    if (isIOS && !isStandalone) {
+      iosBox.style.display = 'flex';
+      desc.textContent = "※iOSではプッシュ通知を受信するためにホーム画面への追加が必要です。";
+      btn.style.display = 'none';
+      return;
+    }
 
     const isSubscribed = localStorage.getItem('push_subscribed_' + currentTargetId);
     if (isSubscribed) {
@@ -675,7 +766,7 @@
 
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') {
-          alert('通知が許可されませんでした。ブラウザの設定をご確認ください。');
+          alert('通知が許可されませんでした。設定をご確認ください。');
           btn.disabled = false;
           btn.innerHTML = '<span class="material-symbols-rounded">notifications_active</span>通知を受け取る';
           return;
