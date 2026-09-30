@@ -424,7 +424,7 @@
     const requestUrl = `${API_ENDPOINT}?id=${encodeURIComponent(id)}`;
 
     fetch(requestUrl, {
-      method: "GET"
+      method: "GET",
       referrerPolicy: "no-referrer"
     })
       .then(response => {
