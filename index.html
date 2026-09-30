@@ -425,6 +425,7 @@
 
     fetch(requestUrl, {
       method: "GET"
+      referrerPolicy: "no-referrer"
     })
       .then(response => {
         if (!response.ok) throw new Error("HTTP error: " + response.status);
